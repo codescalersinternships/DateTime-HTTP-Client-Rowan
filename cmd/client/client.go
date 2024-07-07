@@ -1,18 +1,20 @@
-package client
+package main
 
 import (
 	"fmt"
 	"io"
 	"net/http"
-	// "os"
+	"os"
 	"time"
 	// "errors"
+	"context"
 )
 
 // DateTimeClient is the structure used as an interface to the client request handling
 // has the client object and its own GetDateTime method
 type DateTimeClient struct {
 	client http.Client
+	url    string
 }
 
 // ErrWrongParameterPassed expresses the error of passing more than 1 parameter
@@ -28,16 +30,19 @@ func NewDateTimeClient() DateTimeClient {
 // It returns []byte which is the response of request
 func (dateTimeClient *DateTimeClient) GetDateTime(urlParam ...string) ([]byte, error) {
 	dateTimeClient.client = http.Client{Timeout: time.Duration(1) * time.Second}
-	var url string
 	if len(urlParam) == 0 {
-		url = "http://localhost:8089/datetime"
+		dateTimeClient.url = "http://localhost:8089/datetime"
 	} else if len(urlParam) > 1 {
-		ErrWrongParameterPassed = fmt.Errorf("Too many arguments passed as %v, Only 1 element is required", urlParam)
+		ErrWrongParameterPassed = fmt.Errorf("too many arguments passed as %v, Only 1 element is required", urlParam)
 		return nil, ErrWrongParameterPassed
 	} else {
-		url = urlParam[0]
+		dateTimeClient.url = urlParam[0]
 	}
-	response, err := dateTimeClient.client.Get(url)
+	return retry(context.Background(), dateTimeClient.requestInfo, 3)
+}
+
+func (dateTimeClient *DateTimeClient) requestInfo() ([]byte, error) {
+	response, err := dateTimeClient.client.Get(dateTimeClient.url)
 	if err != nil {
 		return nil, err
 	}
@@ -49,30 +54,45 @@ func (dateTimeClient *DateTimeClient) GetDateTime(urlParam ...string) ([]byte, e
 	return body, nil
 }
 
-// func main() {
-// client := http.Client{Timeout: time.Duration(1) * time.Second}
-// url := os.Getenv("URL")
-// if url == "" {
-// 	url = "http://localhost:8089/datetime"
-// }
-// response, err := client.Get(url)
-// 	if err != nil {
-// 		fmt.Printf("Error %s", err)
-// 		return
-// 	}
-// 	defer response.Body.Close()
-// 	body, _ := io.ReadAll(response.Body)
-// 	fmt.Printf("Body : %s", body)
-// client := NewDateTimeClient()
-// body, _ := client.GetDateTime()
-// fmt.Printf("%s\n", body)
+func retry(ctx context.Context, f func() ([]byte, error), retryAttempts int) ([]byte, error) {
+	var err error
+	var body []byte
+	for i := 0; i < retryAttempts; i++ {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+		body, err = f()
+		if err == nil {
+			return body, err
+		}
+		time.Sleep(time.Second)
 
-// client.GetDateTime()
-// // fmt.Println()
-// _, err:= client.GetDateTime(os.Getenv("URL"), "rowann")
-// fmt.Println(err)
-// // fmt.Println()
-// client.GetDateTime("http://localhost:8080/datetime")
-// fmt.Println()
+	}
+	return body, err
+}
 
-// }
+func main() {
+	// client := http.Client{Timeout: time.Duration(1) * time.Second}
+	// url := os.Getenv("URL")
+	// if url == "" {
+	// 	url = "http://localhost:8089/datetime"
+	// }
+	// response, err := client.Get(url)
+	// 	if err != nil {
+	// 		fmt.Printf("Error %s", err)
+	// 		return
+	// 	}
+	// 	defer response.Body.Close()
+	// 	body, _ := io.ReadAll(response.Body)
+	// 	fmt.Printf("Body : %s", body)
+	client := NewDateTimeClient()
+	body, err := client.GetDateTime(os.Getenv("URL"))
+	fmt.Printf("%s", body)
+	fmt.Println(err)
+	// fmt.Println()
+	// client.GetDateTime("http://localhost:8080/datetime")
+	// fmt.Println()
+
+}
