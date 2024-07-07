@@ -2,7 +2,7 @@ name: Go
 on: [push]
 
 jobs:
-  Build-Lint:
+  Build:
     runs-on: ubuntu-latest
       
 
@@ -14,10 +14,10 @@ jobs:
         with:
           go-version: '1.22.x'
       - name: Build
-        run: go build -o httpclient cmd/httpclient/client.go && go build -o ginclient cmd/ginclient/client.go
+        run: go build -o client cmd/client/client.go 
     #   - name: Test with the Go CLI
     #     run: make test
-  lint:
+  Lint:
     runs-on: ubuntu-latest
 
     steps:
