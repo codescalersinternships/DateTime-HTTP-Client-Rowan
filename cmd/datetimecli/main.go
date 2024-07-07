@@ -10,4 +10,5 @@ func main() {
 	client := pkg.NewDateTimeClient("http://localhost:8080")
 	data, _ := client.GetDateTime()
 	fmt.Printf("%s", data)
+	fmt.Println(string(data))
 }

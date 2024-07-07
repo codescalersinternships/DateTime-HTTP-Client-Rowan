@@ -15,8 +15,8 @@ jobs:
           go-version: '1.22.x'
       - name: Build
         run: go build -o client pkg/client.go && go build -o main cmd/datetimecli/main.go
-    #   - name: Test with the Go CLI
-    #     run: make test
+      - name: Test with the Go CLI
+        run: go test ./...
   Lint:
     runs-on: ubuntu-latest
 
