@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func Test_GetDateTi(t *testing.T) {
+func Test_GetDateTime(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, time.Now())
@@ -58,4 +58,10 @@ func Test_GetDateTi(t *testing.T) {
 		fmt.Println(err)
 		assert.NotEqual(t, nil, err)
 	})
+}
+
+func Test_AllPossibilities(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		Test_GetDateTime(t)
+	}
 }
