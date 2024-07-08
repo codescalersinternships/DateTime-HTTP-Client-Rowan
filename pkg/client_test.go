@@ -22,8 +22,6 @@ func Test_GetDateTime(t *testing.T) {
 	fmt.Printf("%s\n", response)
 	fmt.Println(err)
 
-	t.Run("testing successs of response", func(t *testing.T) {
-	})
 	t.Run("testing correct date", func(t *testing.T) {
 		got := strings.Split(string(response), " ")[0]
 		want := strings.Split(time.Now().String(), " ")[0]
